@@ -13,11 +13,40 @@ Group    : Development/Tools
 License  : GPL-2.0
 Requires: rip-bin = %{version}-%{release}
 BuildRequires : autoconf-archive-dev
+BuildRequires : binutils-dev
+BuildRequires : binutils-extras
+BuildRequires : buildreq-cmake
+BuildRequires : buildreq-distutils3
 BuildRequires : ca-certs
 BuildRequires : ca-certs-static
+BuildRequires : doxygen
+BuildRequires : elfutils-dev
+BuildRequires : gcc-dev
+BuildRequires : git
+BuildRequires : glibc-dev
+BuildRequires : glibc-staticdev
+BuildRequires : googletest-dev
 BuildRequires : grep
 BuildRequires : intltool
 BuildRequires : intltool-dev
+BuildRequires : libedit
+BuildRequires : libedit-dev
+BuildRequires : libffi-dev
+BuildRequires : libffi-staticdev
+BuildRequires : libstdc++-dev
+BuildRequires : libxml2-dev
+BuildRequires : libxml2-staticdev
+BuildRequires : llvm12
+BuildRequires : llvm12-abi
+BuildRequires : llvm12-bin
+BuildRequires : llvm12-data
+BuildRequires : llvm12-dev
+BuildRequires : llvm12-lib
+BuildRequires : llvm12-libexec
+BuildRequires : llvm12-man
+BuildRequires : llvm12-staticdev
+BuildRequires : ncurses-dev
+BuildRequires : ninja
 BuildRequires : openssl
 BuildRequires : openssl-dev
 BuildRequires : rustc
@@ -49,18 +78,56 @@ bin components for the rip package.
 cd %{_builddir}/rip
 
 %build
+## build_prepend content
+export AR=/usr/bin/llvm-ar
+export RANLIB=/usr/bin/llvm-ranlib
+export NM=/usr/bin/llvm-nm
+#
+unset CCACHE_DISABLE
+export PATH="/usr/lib64/ccache/bin:$PATH"
+export CCACHE_NOHASHDIR=true
+export CCACHE_CPP2=true
+export CCACHE_SLOPPINESS=pch_defines,time_macros,locale,file_stat_matches,file_stat_matches_ctime,include_file_ctime,include_file_mtime,modules,system_headers,clang_index_store,file_macro
+#export CCACHE_SLOPPINESS=modules,include_file_mtime,include_file_ctime,time_macros,pch_defines,file_stat_matches,clang_index_store,system_headers,locale
+#export CCACHE_SLOPPINESS=pch_defines,time_macros,locale,clang_index_store,file_macro
+export CCACHE_DIR=/var/tmp/ccache
+export CCACHE_BASEDIR=/builddir/build/BUILD
+#export CCACHE_LOGFILE=/var/tmp/ccache/cache.debug
+#export CCACHE_DEBUG=true
+#export CCACHE_NODIRECT=true
+## build_prepend end
 unset http_proxy
 unset https_proxy
 unset no_proxy
 export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
-RUSTFLAGS="-C target-cpu=native"
+printf "[build]\nrustflags = [\"-Ctarget-cpu=native\", \"-Ztune-cpu=native\", \"-Copt-level=3\", \"-Clto=fat\", \"-Clinker-plugin-lto=yes\", \"-Cembed-bitcode=yes\", \"-Clinker=clang-12\", \"-Clink-arg=-flto\", \"-Clink-arg=-fuse-ld=lld\", \"-Clink-arg=-Wl,--lto-O3\", \"-Clink-arg=-Wl,-O2\", \"-Clink-arg=-Wl,--hash-style=gnu\", \"-Clink-arg=-Wl,--enable-new-dtags\", \"-Clink-arg=-Wl,--build-id=sha1\", \"-Clink-arg=-fno-stack-protector\", \"-Clink-arg=-Wl,--as-needed\", \"-Clink-arg=-O3\", \"-Clink-arg=-march=native\", \"-Clink-arg=-mtune=native\", \"-Clink-arg=-falign-functions=32\", \"-Clink-arg=-fasynchronous-unwind-tables\", \"-Clink-arg=-funroll-loops\", \"-Clink-arg=-fvisibility-inlines-hidden\", \"-Clink-arg=-static-libstdc++\", \"-Clink-arg=-march=native\", \"-Clink-arg=-static-libgcc\", \"-Clink-arg=-pthread\", \"-Clink-arg=-lpthread\", \"-Clink-arg=-L.\"]\n[net]\ngit-fetch-with-cli = true\n" > $HOME/.cargo/config.toml
+unset CFLAGS
+unset CXXFLAGS
+unset FCFLAGS
+unset FFLAGS
+unset CFFLAGS
+unset LDFLAGS
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+export CARGO_PROFILE_RELEASE_LTO=true
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-12
 export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
+export CARGO_TARGET_DIR=target
+export RUSTFLAGS="-Ctarget-cpu=native -Ztune-cpu=native -Copt-level=3 -Clto=fat -Clinker-plugin-lto=yes -Cembed-bitcode=yes -Clinker=clang-12 -Clink-arg=-flto -Clink-arg=-fuse-ld=lld -Clink-arg=-Wl,--lto-O3 -Clink-arg=-Wl,-O2 -Clink-arg=-Wl,--hash-style=gnu -Clink-arg=-Wl,--enable-new-dtags -Clink-arg=-Wl,--build-id=sha1 -Clink-arg=-fno-stack-protector -Clink-arg=-Wl,--as-needed -Clink-arg=-O3 -Clink-arg=-march=native -Clink-arg=-mtune=native -Clink-arg=-falign-functions=32 -Clink-arg=-fasynchronous-unwind-tables -Clink-arg=-funroll-loops -Clink-arg=-fvisibility-inlines-hidden -Clink-arg=-static-libstdc++ -Clink-arg=-march=native -Clink-arg=-static-libgcc -Clink-arg=-pthread -Clink-arg=-lpthread -Clink-arg=-L."
+cargo clean
 cargo update --verbose
 
 %install
-RUSTFLAGS="-C target-cpu=native"
-export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
-RUSTFLAGS="-C target-cpu=native" cargo install --verbose --no-track --path . --root %{buildroot}/usr/
+cargo install %{?_smp_mflags} --all-features --verbose --target-dir target --path . --root %{buildroot}/usr/
+## install_append content
+# shell completion for bash
+# install -dm 0755 %{buildroot}/usr/share/bash-completion/completions
+# install -m0644 ./target/release/build/ripgrep-*/out/rg.bash %{buildroot}/usr/share/bash-completion/completions/rg
+# rm -rf ./target/release/build/ripgrep-*/out/rg.bash
+# man docs
+# install -dm 0755 %{buildroot}/usr/share/man/man1
+# install -m0644 ./target/release/build/ripgrep-*/out/rg.1 %{buildroot}/usr/share/man/man1/rg.1
+## install_append end
 ## install_append content
 # shell completion for bash
 # install -dm 0755 %{buildroot}/usr/share/bash-completion/completions
@@ -73,6 +140,8 @@ RUSTFLAGS="-C target-cpu=native" cargo install --verbose --no-track --path . --r
 
 %files
 %defattr(-,root,root,-)
+/usr/.crates.toml
+/usr/.crates2.json
 
 %files bin
 %defattr(-,root,root,-)
