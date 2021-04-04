@@ -12,6 +12,9 @@ Summary  : No detailed summary available
 Group    : Development/Tools
 License  : GPL-2.0
 Requires: rip-bin = %{version}-%{release}
+BuildRequires : asciidoctor
+BuildRequires : asciidoctor-bin
+BuildRequires : asciidoctor-dev
 BuildRequires : autoconf-archive-dev
 BuildRequires : binutils-dev
 BuildRequires : binutils-extras
@@ -49,6 +52,7 @@ BuildRequires : ncurses-dev
 BuildRequires : ninja
 BuildRequires : openssl
 BuildRequires : openssl-dev
+BuildRequires : ruby
 BuildRequires : rustc
 BuildRequires : rustc-bin
 BuildRequires : rustc-data
@@ -100,7 +104,8 @@ unset http_proxy
 unset https_proxy
 unset no_proxy
 export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
-printf "[build]\nrustflags = [\"-Ctarget-cpu=native\", \"-Ztune-cpu=native\", \"-Copt-level=3\", \"-Clto=fat\", \"-Clinker-plugin-lto=yes\", \"-Cembed-bitcode=yes\", \"-Clinker=clang-12\", \"-Clink-arg=-flto\", \"-Clink-arg=-fuse-ld=lld\", \"-Clink-arg=-Wl,--lto-O3\", \"-Clink-arg=-Wl,-O2\", \"-Clink-arg=-Wl,--hash-style=gnu\", \"-Clink-arg=-Wl,--enable-new-dtags\", \"-Clink-arg=-Wl,--build-id=sha1\", \"-Clink-arg=-fno-stack-protector\", \"-Clink-arg=-Wl,--as-needed\", \"-Clink-arg=-O3\", \"-Clink-arg=-march=native\", \"-Clink-arg=-mtune=native\", \"-Clink-arg=-falign-functions=32\", \"-Clink-arg=-fasynchronous-unwind-tables\", \"-Clink-arg=-funroll-loops\", \"-Clink-arg=-fvisibility-inlines-hidden\", \"-Clink-arg=-static-libstdc++\", \"-Clink-arg=-march=native\", \"-Clink-arg=-static-libgcc\", \"-Clink-arg=-pthread\", \"-Clink-arg=-lpthread\", \"-Clink-arg=-L.\"]\n[net]\ngit-fetch-with-cli = true\n" > $HOME/.cargo/config.toml
+mkdir -p $HOME/.cargo
+printf "[build]\nrustflags = [\"-Ctarget-cpu=native\", \"-Ztune-cpu=native\", \"-Cprefer-dynamic=no\", \"-Copt-level=3\", \"-Clto=fat\", \"-Clinker-plugin-lto=yes\", \"-Cembed-bitcode=yes\", \"-Clinker=clang-12\", \"-Clink-arg=-flto\", \"-Clink-arg=-fuse-ld=lld\", \"-Clink-arg=-Wl,--lto-O3\", \"-Clink-arg=-Wl,-O2\", \"-Clink-arg=-Wl,--hash-style=gnu\", \"-Clink-arg=-Wl,--enable-new-dtags\", \"-Clink-arg=-Wl,--build-id=sha1\", \"-Clink-arg=-fno-stack-protector\", \"-Clink-arg=-Wl,--as-needed\", \"-Clink-arg=-O3\", \"-Clink-arg=-march=native\", \"-Clink-arg=-mtune=native\", \"-Clink-arg=-falign-functions=32\", \"-Clink-arg=-fasynchronous-unwind-tables\", \"-Clink-arg=-funroll-loops\", \"-Clink-arg=-fvisibility-inlines-hidden\", \"-Clink-arg=-static-libstdc++\", \"-Clink-arg=-march=native\", \"-Clink-arg=-static-libgcc\", \"-Clink-arg=-pthread\", \"-Clink-arg=-lpthread\", \"-Clink-arg=-L.\"]\n[net]\ngit-fetch-with-cli = true\n" > $HOME/.cargo/config.toml
 unset CFLAGS
 unset CXXFLAGS
 unset FCFLAGS
@@ -112,36 +117,40 @@ export CARGO_PROFILE_RELEASE_LTO=true
 export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
 export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-12
 export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
+export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt
 export CARGO_TARGET_DIR=target
-export RUSTFLAGS="-Ctarget-cpu=native -Ztune-cpu=native -Copt-level=3 -Clto=fat -Clinker-plugin-lto=yes -Cembed-bitcode=yes -Clinker=clang-12 -Clink-arg=-flto -Clink-arg=-fuse-ld=lld -Clink-arg=-Wl,--lto-O3 -Clink-arg=-Wl,-O2 -Clink-arg=-Wl,--hash-style=gnu -Clink-arg=-Wl,--enable-new-dtags -Clink-arg=-Wl,--build-id=sha1 -Clink-arg=-fno-stack-protector -Clink-arg=-Wl,--as-needed -Clink-arg=-O3 -Clink-arg=-march=native -Clink-arg=-mtune=native -Clink-arg=-falign-functions=32 -Clink-arg=-fasynchronous-unwind-tables -Clink-arg=-funroll-loops -Clink-arg=-fvisibility-inlines-hidden -Clink-arg=-static-libstdc++ -Clink-arg=-march=native -Clink-arg=-static-libgcc -Clink-arg=-pthread -Clink-arg=-lpthread -Clink-arg=-L."
 cargo clean
 cargo update --verbose
 
 %install
-cargo install %{?_smp_mflags} --all-features --verbose --target-dir target --path . --root %{buildroot}/usr/
+mkdir -p $HOME/.cargo
+printf "[build]\nrustflags = [\"-Ctarget-cpu=native\", \"-Ztune-cpu=native\", \"-Cprefer-dynamic=no\", \"-Copt-level=3\", \"-Clto=fat\", \"-Clinker-plugin-lto=yes\", \"-Cembed-bitcode=yes\", \"-Clinker=clang-12\", \"-Clink-arg=-flto\", \"-Clink-arg=-fuse-ld=lld\", \"-Clink-arg=-Wl,--lto-O3\", \"-Clink-arg=-Wl,-O2\", \"-Clink-arg=-Wl,--hash-style=gnu\", \"-Clink-arg=-Wl,--enable-new-dtags\", \"-Clink-arg=-Wl,--build-id=sha1\", \"-Clink-arg=-fno-stack-protector\", \"-Clink-arg=-Wl,--as-needed\", \"-Clink-arg=-O3\", \"-Clink-arg=-march=native\", \"-Clink-arg=-mtune=native\", \"-Clink-arg=-falign-functions=32\", \"-Clink-arg=-fasynchronous-unwind-tables\", \"-Clink-arg=-funroll-loops\", \"-Clink-arg=-fvisibility-inlines-hidden\", \"-Clink-arg=-static-libstdc++\", \"-Clink-arg=-march=native\", \"-Clink-arg=-static-libgcc\", \"-Clink-arg=-pthread\", \"-Clink-arg=-lpthread\", \"-Clink-arg=-L.\"]\n[net]\ngit-fetch-with-cli = true\n" > $HOME/.cargo/config.toml
+unset CFLAGS
+unset CXXFLAGS
+unset FCFLAGS
+unset FFLAGS
+unset CFFLAGS
+unset LDFLAGS
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+export CARGO_PROFILE_RELEASE_LTO=true
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-12
+export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
+export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt
+export CARGO_TARGET_DIR=target
+cargo install %{?_smp_mflags} --target-dir target --target x86_64-unknown-linux-gnu --all-features --verbose --path . --root %{buildroot}/usr/
+rm %{buildroot}/usr/.crates*
 ## install_append content
 # shell completion for bash
 # install -dm 0755 %{buildroot}/usr/share/bash-completion/completions
-# install -m0644 ./target/release/build/ripgrep-*/out/rg.bash %{buildroot}/usr/share/bash-completion/completions/rg
-# rm -rf ./target/release/build/ripgrep-*/out/rg.bash
+# install -m0644 /builddir/build/BUILD/ripgrep/target/x86_64-unknown-linux-gnu/release/build/fd-*/out/fd.bash %{buildroot}/usr/share/bash-completion/completions/fd
 # man docs
 # install -dm 0755 %{buildroot}/usr/share/man/man1
-# install -m0644 ./target/release/build/ripgrep-*/out/rg.1 %{buildroot}/usr/share/man/man1/rg.1
-## install_append end
-## install_append content
-# shell completion for bash
-# install -dm 0755 %{buildroot}/usr/share/bash-completion/completions
-# install -m0644 ./target/release/build/ripgrep-*/out/rg.bash %{buildroot}/usr/share/bash-completion/completions/rg
-# rm -rf ./target/release/build/ripgrep-*/out/rg.bash
-# man docs
-# install -dm 0755 %{buildroot}/usr/share/man/man1
-# install -m0644 ./target/release/build/ripgrep-*/out/rg.1 %{buildroot}/usr/share/man/man1/rg.1
+# install -m0644 /builddir/build/BUILD/ripgrep/target/x86_64-unknown-linux-gnu/release/build/fd-*/out/rg.1 %{buildroot}/usr/share/man/man1/rg.1
 ## install_append end
 
 %files
 %defattr(-,root,root,-)
-/usr/.crates.toml
-/usr/.crates2.json
 
 %files bin
 %defattr(-,root,root,-)
