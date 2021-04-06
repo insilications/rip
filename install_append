@@ -1,6 +1,0 @@
-# shell completion for bash
-# install -dm 0755 %{buildroot}/usr/share/bash-completion/completions
-# install -m0644 /builddir/build/BUILD/ripgrep/target/x86_64-unknown-linux-gnu/release/build/fd-*/out/fd.bash %{buildroot}/usr/share/bash-completion/completions/fd
-# man docs
-# install -dm 0755 %{buildroot}/usr/share/man/man1
-# install -m0644 /builddir/build/BUILD/ripgrep/target/x86_64-unknown-linux-gnu/release/build/fd-*/out/rg.1 %{buildroot}/usr/share/man/man1/rg.1

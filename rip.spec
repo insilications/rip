@@ -140,14 +140,7 @@ export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt
 export CARGO_TARGET_DIR=target
 cargo install %{?_smp_mflags} --target-dir target --target x86_64-unknown-linux-gnu --all-features --verbose --path . --root %{buildroot}/usr/
 rm %{buildroot}/usr/.crates*
-## install_append content
-# shell completion for bash
-# install -dm 0755 %{buildroot}/usr/share/bash-completion/completions
-# install -m0644 /builddir/build/BUILD/ripgrep/target/x86_64-unknown-linux-gnu/release/build/fd-*/out/fd.bash %{buildroot}/usr/share/bash-completion/completions/fd
-# man docs
-# install -dm 0755 %{buildroot}/usr/share/man/man1
-# install -m0644 /builddir/build/BUILD/ripgrep/target/x86_64-unknown-linux-gnu/release/build/fd-*/out/rg.1 %{buildroot}/usr/share/man/man1/rg.1
-## install_append end
+## Cargo install assets
 
 %files
 %defattr(-,root,root,-)
